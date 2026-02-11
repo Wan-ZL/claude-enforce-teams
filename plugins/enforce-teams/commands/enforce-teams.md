@@ -1,11 +1,11 @@
 ---
-description: Configure Enforce Teams delegation level — controls when Claude automatically creates Agent Teams
+description: Configure Enforce Teams delegation level — controls when the team leader automatically creates Agent Teams
 argument-hint: Optional level (full, smart, off)
 ---
 
 # Enforce Teams Configuration
 
-You are helping the user configure the Enforce Teams plugin, which controls when Claude Code automatically creates Agent Teams (orchestrate teams of Claude Code sessions).
+You are helping the user configure the Enforce Teams plugin, which controls when the team leader automatically creates Agent Teams (orchestrate teams of Claude Code sessions).
 
 ## Step 0: Prerequisites Check
 

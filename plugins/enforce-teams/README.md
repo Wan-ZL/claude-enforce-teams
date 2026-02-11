@@ -1,6 +1,6 @@
 # Enforce Teams
 
-**Automatically activate Claude Code Agent Teams based on task complexity.**
+**Enforce Claude Code Agent Teams usage at configurable delegation levels.**
 
 Uses a UserPromptSubmit hook to inject delegation behavior into every conversation turn. No CLAUDE.md modification needed.
 
@@ -45,21 +45,17 @@ Then configure your delegation level:
 * = Recommended
 ```
 
-## Included Agents
-
-| Agent | Model | Use Case |
-|-------|-------|----------|
-| `team-researcher` | haiku | Parallel research — multiple angles simultaneously |
-| `team-implementer` | sonnet | Implementation with file ownership |
-| `team-reviewer` | sonnet | Code review — security, quality, correctness, performance |
-| `team-debugger` | sonnet | Hypothesis testing with inter-agent debate |
-
 ## Uninstall
 
 ```bash
 claude plugin remove enforce-teams@claude-enforce-teams
 rm ~/.claude/enforce-teams-level
+rm ~/.claude/hooks/enforce_teams_check.sh
 ```
+
+Then remove the `UserPromptSubmit` hook entry referencing `enforce_teams_check.sh` from `~/.claude/settings.json`.
+
+If `~/.claude/CLAUDE.md` contains an `<!-- enforce-teams:start -->` to `<!-- enforce-teams:end -->` block, delete that entire block.
 
 ## License
 

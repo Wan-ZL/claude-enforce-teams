@@ -1,10 +1,10 @@
 # Enforce Teams
 
-**Automatically activate Claude Code Agent Teams based on task complexity.**
+**Enforce Claude Code Agent Teams usage at configurable delegation levels.**
 
 Claude Code's [Agent Teams](https://code.claude.com/docs/en/agent-teams) feature lets you coordinate multiple Claude instances working in parallel. By default, Claude won't create a team without your approval.
 
-**Enforce Teams changes that.** Once installed, Claude automatically creates agent teams when it detects a task that benefits from parallel work — no slash commands or special prompts needed.
+**Enforce Teams changes that.** Choose a delegation level, and the team leader automatically creates agent teams based on your configured policy — no slash commands or special prompts needed.
 
 ## Prerequisites
 
@@ -25,11 +25,6 @@ Add this to `~/.claude/settings.json` (global) or `.claude/settings.json` (per-p
 - **Auto-activation via UserPromptSubmit hook** — delegation behavior injected into every conversation turn
 - **3 delegation levels** — from "delegate everything" to "default behavior"
 - **`/enforce-teams` command** to switch levels anytime
-- **4 specialized teammate agents** optimized for team scenarios:
-  - `team-researcher` — parallel research with haiku (fast)
-  - `team-implementer` — code implementation with file ownership
-  - `team-reviewer` — code review from assigned perspective (security/quality/correctness/performance)
-  - `team-debugger` — hypothesis testing with inter-agent debate
 
 ## Install
 
@@ -78,15 +73,15 @@ Choose from 3 levels. The selected level takes effect in every new conversation.
 
 ### Full Delegate (Level 3)
 
-Claude becomes a pure coordinator. Every user message triggers a team — Claude never does work directly. Even simple questions go through a teammate. This maximizes parallelism but uses more tokens.
+The team leader becomes a pure coordinator. Every user message triggers a team — the leader never does work directly. Even simple questions go through a teammate. This maximizes parallelism but uses more tokens.
 
 ### Smart Delegate (Level 2) — Recommended
 
-Claude creates teams when the task is complex enough to benefit from parallel work (3+ files, research, review, debugging, multi-file implementation). Simple tasks like typo fixes or direct questions are handled directly without a team.
+The team leader creates teams when the task is complex enough to benefit from parallel work (3+ files, research, review, debugging, multi-file implementation). Simple tasks like typo fixes or direct questions are handled directly without a team.
 
 ### Off (Level 1)
 
-Restores default Claude Code behavior. Claude may suggest creating a team for complex tasks, but will always ask for your approval first. Teams are never created automatically.
+Restores default Claude Code behavior. The team leader may suggest creating a team for complex tasks, but will always ask for your approval first. Teams are never created automatically.
 
 ## How It Works
 
@@ -104,34 +99,23 @@ Enforce Teams uses a **UserPromptSubmit hook** to inject delegation behavior int
 
 This approach means the plugin does **not** modify your CLAUDE.md. The behavior is injected dynamically at the start of each conversation turn.
 
-## Included Agents
-
-These specialized agents are designed for team scenarios. They know how to use TaskList, TaskUpdate, and SendMessage for coordination.
-
-| Agent | Model | Tools | Use Case |
-|-------|-------|-------|----------|
-| `enforce-teams:team-researcher` | haiku | Glob, Grep, Read, WebSearch, WebFetch + more | Parallel research — 2-3 researchers each on a different angle |
-| `enforce-teams:team-implementer` | sonnet | Full read/write + Bash | Implementation with file ownership — each owns distinct files |
-| `enforce-teams:team-reviewer` | sonnet | Glob, Grep, Read, WebSearch, WebFetch + more | Code review — security, quality, correctness, or performance |
-| `enforce-teams:team-debugger` | sonnet | Glob, Grep, Read, Bash, WebSearch + more | Hypothesis testing — debuggers challenge each other's theories |
-
 ## Examples
 
 ### Smart Delegate level (recommended)
 
 **You say:** "Investigate why the login is slow"
 
-**Claude automatically:**
+**The team leader automatically:**
 1. Creates team `debug-login`
 2. Creates 3 tasks (database query analysis, auth middleware profiling, frontend rendering check)
-3. Spawns 3 `team-debugger` teammates, one per hypothesis
+3. Spawns 3 teammates, one per hypothesis
 4. Teammates investigate in parallel, message each other to challenge theories
 5. Leader synthesizes findings and reports the root cause
 6. Cleans up the team
 
 **You say:** "Fix the typo in README"
 
-**Claude:** Just fixes it. No team needed.
+**Leader:** Just fixes it. No team needed.
 
 ### Changing levels
 
@@ -177,7 +161,19 @@ Or in Claude Code:
 rm ~/.claude/enforce-teams-level
 ```
 
-That's it. Since the plugin uses a hook (not CLAUDE.md), there is no CLAUDE.md cleanup needed.
+### Step 3: Remove the hook script
+
+```bash
+rm ~/.claude/hooks/enforce_teams_check.sh
+```
+
+### Step 4: Remove the hook entry from settings
+
+Open `~/.claude/settings.json` and remove the `UserPromptSubmit` hook entry that references `enforce_teams_check.sh`.
+
+### Step 5: Remove CLAUDE.md block (if present)
+
+If `~/.claude/CLAUDE.md` contains an `<!-- enforce-teams:start -->` to `<!-- enforce-teams:end -->` block, delete that entire block.
 
 ### Optional: Remove the marketplace
 
@@ -197,7 +193,7 @@ A: The orchestration rules prevent this. Each teammate owns distinct files. If o
 A: Use the Smart Delegate level (recommended). It creates teams for complex tasks and handles simple ones directly. Or use Off and let Claude ask before creating teams.
 
 **Q: Does this work with existing plugins?**
-A: Yes. Enforce Teams agents can work alongside agents from other plugins. The team leader picks the best agent type for each task.
+A: Yes. Enforce Teams works alongside other plugins. The team leader picks the best approach for each task.
 
 **Q: What happens if Agent Teams is not enabled?**
 A: The plugin won't work. Agent Teams is an experimental feature that must be enabled first. See the [Prerequisites](#prerequisites) section.

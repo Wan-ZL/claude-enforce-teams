@@ -1,14 +1,14 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "claude-enforce-teams",
-  "description": "Enforce Claude Code Agent Teams for every task. Configurable aggressiveness levels and specialized teammate agents.",
+  "description": "Enforce Claude Code Agent Teams usage at configurable delegation levels.",
   "owner": {
     "name": "zelin"
   },
   "plugins": [
     {
       "name": "enforce-teams",
-      "description": "Enforce Agent Teams with 3 delegation levels (Full Delegate/Smart Delegate/Off) and 4 specialized teammate agents (researcher, implementer, reviewer, debugger).",
+      "description": "Enforce Agent Teams with 3 delegation levels (Full Delegate/Smart Delegate/Off).",
       "author": {
         "name": "zelin"
       },
