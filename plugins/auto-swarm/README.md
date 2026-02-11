@@ -2,14 +2,45 @@
 
 **Automatically activate Claude Code Agent Teams based on task complexity.**
 
-Claude Code's [Agent Teams](https://code.claude.com/docs/en/agent-teams) (Orchestrate teams) feature lets you coordinate multiple Claude instances working in parallel. But by default, Claude only creates teams when you explicitly ask for them.
+Claude Code's [Agent Teams](https://docs.anthropic.com/en/docs/claude-code/agent-teams) (Orchestrate teams) feature lets you coordinate multiple Claude instances working in parallel. But by default, Claude only creates teams when you explicitly ask for them.
 
 **Auto-Swarm changes that.** Once installed, Claude automatically creates agent teams when it detects a task that would benefit from parallel work — no slash commands or special prompts needed.
 
+## Architecture: Dual-Layer Enforcement
+
+Auto-Swarm uses a **dual-layer architecture** because CLAUDE.md alone is unreliable for behavior enforcement:
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    User Prompt                          │
+│                       ↓                                 │
+│  ┌─────────────────────────────────────────────────┐    │
+│  │  Layer 1: UserPromptSubmit Hook (DETERMINISTIC) │    │
+│  │  • Always fires on every user prompt            │    │
+│  │  • Reads ~/.claude/auto-swarm-level             │    │
+│  │  • Injects additionalContext into system prompt │    │
+│  │  • Cannot be ignored by the model               │    │
+│  └─────────────────────────────────────────────────┘    │
+│                       ↓                                 │
+│  ┌─────────────────────────────────────────────────┐    │
+│  │  Layer 2: CLAUDE.md Rules (ADVISORY)            │    │
+│  │  • Detailed team templates and criteria          │    │
+│  │  • Orchestration rules and model selection       │    │
+│  │  • Reinforces hook injection with more context   │    │
+│  └─────────────────────────────────────────────────┘    │
+│                       ↓                                 │
+│            Claude creates Agent Team                    │
+│         (or handles directly if simple)                 │
+└─────────────────────────────────────────────────────────┘
+```
+
+**Why two layers?** CLAUDE.md instructions are advisory — the model can and does ignore them (~40-50% compliance for complex behavioral rules). Hooks are deterministic — they always execute and inject context that the model reliably follows (~80-85% compliance). Together, they achieve the highest possible enforcement rate.
+
 ## Features
 
-- **Auto-activation rules** injected into your CLAUDE.md so Claude knows WHEN to create teams
-- **5 aggressiveness levels** — from "teams for literally everything including hello" to "only when absolutely necessary"
+- **Deterministic hook enforcement** via UserPromptSubmit — injects team-creation rules on every prompt
+- **Advisory CLAUDE.md rules** — detailed team templates and orchestration guidance
+- **3 delegation levels** — from "delegate everything" to "disabled"
 - **`/auto-swarm` command** to switch levels anytime
 - **4 specialized teammate agents** optimized for team scenarios:
   - `swarm-researcher` — parallel research with haiku (fast + cheap)
@@ -55,25 +86,42 @@ Or in Claude Code:
 /plugin install auto-swarm@claude-auto-swarm
 ```
 
-### Step 3: Configure aggressiveness level
+### Step 3: Configure delegation level
 
 ```
 /auto-swarm
 ```
 
-Choose from 5 levels. This writes the auto-activation rules to your `~/.claude/CLAUDE.md`. The rules take effect in every new conversation.
+Choose from 3 levels. This writes:
+1. The level to `~/.claude/auto-swarm-level` (read by the hook)
+2. The auto-activation rules to `~/.claude/CLAUDE.md` (advisory reinforcement)
 
-## Aggressiveness Levels
+Both take effect in the next new conversation.
 
-| # | Level | When Teams Are Created | Token Cost |
-|---|-------|----------------------|------------|
-| 5 | **Extreme** | EVERYTHING. Even "hello" spawns a team | ~5-10x |
-| 4 | **Maximum** | Almost all tasks. Only skip one-word factual answers | ~4-5x |
-| 3 | **Balanced** ★ | 3+ files, research, review, debug, multi-file impl | ~3x |
-| 2 | **Conservative** | 5+ files, major features, large PRs | ~2x |
-| 1 | **Minimal** | Only when explicitly asked or 10+ files | ~1x |
+## Delegation Levels
+
+| # | Level | Leader Role | Token Cost |
+|---|-------|------------|------------|
+| 3 | **Full Delegate** | Pure coordinator. Delegates ALL work to teammates. | ~3-10x |
+| 2 | **Smart Delegate** ★ | Creates teams for complex tasks. Handles simple directly. | ~2-5x |
+| 1 | **Off** | Normal Claude Code. No auto-team behavior. | ~1x |
 
 ★ = Recommended
+
+### Full Delegate (CEO Mode)
+
+The leader is a pure coordinator. It **never** reads files, writes code, runs commands, or searches the codebase directly. Every request — even "fix this typo" — goes through a team. This maximizes:
+- **Parallelism**: All work is done by teammates in parallel
+- **Context window protection**: Leader's context stays clean for coordination
+- **Token cost**: Higher, since even simple tasks spawn teammates
+
+### Smart Delegate (Tech Lead Mode)
+
+The leader acts like a tech lead. Complex tasks (3+ files, research, debugging, review) get a team. Simple tasks (greetings, typo fixes, one-line answers) are handled directly. Best balance of automation and efficiency.
+
+### Off
+
+Disables auto-swarm entirely. Claude Code operates normally — teams only when you explicitly ask.
 
 ## How It Works
 
@@ -81,18 +129,21 @@ Choose from 5 levels. This writes the auto-activation rules to your `~/.claude/C
 
 Claude Code has Agent Teams built in, but it defaults to working alone. Even for tasks that would clearly benefit from parallel work (researching a bug from multiple angles, reviewing code for security AND performance, implementing across frontend + backend), Claude works sequentially unless you specifically ask for a team.
 
+Worse, putting team-creation rules in CLAUDE.md alone is unreliable. CLAUDE.md is advisory — the model frequently ignores complex behavioral instructions due to:
+- System prompt competition (built-in instructions override CLAUDE.md)
+- Lost-in-the-middle effect (LLMs attend less to middle of long prompts)
+- Training data priors (model defaults to single-agent behavior)
+- Context compaction (rules get lost when conversation history is compressed)
+
 ### The Solution
 
-Auto-Swarm adds a rules section to your CLAUDE.md that tells Claude:
-1. **Decision criteria** — when to create a team vs use a subagent vs work alone
-2. **Team templates** — which team composition to use for research, implementation, review, or debugging
-3. **Orchestration rules** — how to manage tasks, file ownership, and cleanup
+Auto-Swarm uses a **UserPromptSubmit hook** for deterministic enforcement. The hook:
+1. Fires on every user prompt (not on teammate prompts — avoids recursive injection)
+2. Reads the current level from `~/.claude/auto-swarm-level`
+3. Injects a concise team-creation instruction as `additionalContext` in the system prompt
+4. The model reliably follows injected context because it appears as a system-level instruction
 
-Since CLAUDE.md is loaded into every conversation, these rules are always active. Claude reads them and automatically creates teams when your task matches the criteria.
-
-### Why CLAUDE.md?
-
-Claude Code plugins can provide agents (subagent types) and commands (slash commands), but they can't inject "always-on" behavior rules. The only mechanism that loads into every conversation and directly controls Claude's decision-making is **CLAUDE.md**. That's why `/auto-swarm` writes rules there — it's the only way to make the behavior truly automatic.
+CLAUDE.md provides the second layer with detailed team templates, orchestration rules, and model selection guidance. Together, the two layers achieve ~80-85% auto-team compliance vs ~40-50% with CLAUDE.md alone.
 
 ## Included Agents
 
@@ -120,7 +171,7 @@ These specialized agents are designed for team scenarios. They know how to use T
 
 ## Examples
 
-### What happens after install (Balanced level)
+### What happens after install (Smart Delegate level)
 
 **You say:** "Investigate why the login is slow"
 
@@ -139,7 +190,7 @@ These specialized agents are designed for team scenarios. They know how to use T
 ### Changing levels
 
 ```
-/auto-swarm conservative
+/auto-swarm full
 ```
 
 Or interactively:
@@ -148,11 +199,13 @@ Or interactively:
 /auto-swarm
 ```
 
-Claude will ask you to pick a level and update your CLAUDE.md.
+Claude will ask you to pick a level and update your configuration.
 
 ## Customization
 
-The rules live in your `~/.claude/CLAUDE.md` between `<!-- auto-swarm:start -->` and `<!-- auto-swarm:end -->` markers. You can edit them directly if you want to fine-tune the criteria beyond the 5 preset levels.
+The CLAUDE.md rules live between `<!-- auto-swarm:start -->` and `<!-- auto-swarm:end -->` markers. You can edit them directly if you want to fine-tune the criteria beyond the 3 preset levels.
+
+The hook reads from `~/.claude/auto-swarm-level` — you can also edit this file directly (`full`, `smart`, or `off`).
 
 ## Uninstall
 
@@ -180,20 +233,28 @@ Or in Claude Code:
 /plugin marketplace remove claude-auto-swarm
 ```
 
-### Step 3: Remove the rules from CLAUDE.md
+### Step 3: Clean up
 
-Open `~/.claude/CLAUDE.md` and delete everything between `<!-- auto-swarm:start -->` and `<!-- auto-swarm:end -->` (inclusive).
+1. Delete everything between `<!-- auto-swarm:start -->` and `<!-- auto-swarm:end -->` in `~/.claude/CLAUDE.md`
+2. Delete `~/.claude/auto-swarm-level`
+3. Remove the UserPromptSubmit hook entry from `~/.claude/settings.json` (if manually added)
 
 ## FAQ
 
+**Q: Why not just use CLAUDE.md?**
+A: CLAUDE.md is advisory, not deterministic. The model ignores it ~50-60% of the time for complex behavioral rules. The UserPromptSubmit hook provides deterministic enforcement — it always injects the team-creation instruction, and the model reliably follows injected system context.
+
 **Q: Does this cost more tokens?**
-A: Yes. Each teammate is a full Claude instance. A team of 3 uses ~4x the tokens of a single session. Auto-Swarm helps by using haiku for research tasks and only creating teams when the task actually benefits from parallelism.
+A: Yes. Each teammate is a full Claude instance. A team of 3 uses ~4x the tokens of a single session. Use Smart Delegate (the default) for the best balance — it only creates teams for genuinely complex tasks.
 
 **Q: Can teammates edit the same file?**
 A: The orchestration rules explicitly prevent this. Each teammate owns distinct files. If overlap is needed, teammates coordinate via messages.
 
+**Q: Will the hook fire on teammate sessions?**
+A: No. UserPromptSubmit only fires on user prompts, not on teammate agent prompts. This avoids recursive team-creation inside teammates.
+
 **Q: What if I want teams sometimes but not always?**
-A: Use the Conservative or Minimal level. Or edit the rules in CLAUDE.md to add your own criteria.
+A: Use Smart Delegate (the default). It creates teams for complex tasks and handles simple ones directly.
 
 **Q: Does this work with existing plugins?**
 A: Yes. Auto-Swarm agents can work alongside agents from other plugins (feature-dev, code-review, etc.). The team leader picks the best agent type for each task.
