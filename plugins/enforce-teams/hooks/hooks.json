@@ -5,7 +5,7 @@
       "hooks": [
         {
           "type": "command",
-          "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/auto_swarm_check.sh"
+          "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/enforce_teams_check.sh"
         }
       ]
     }
