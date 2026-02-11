@@ -154,11 +154,33 @@ The rules live in your `~/.claude/CLAUDE.md` between `<!-- auto-swarm:start -->`
 
 ## Uninstall
 
-1. Remove the plugin:
-   ```bash
-   claude plugin remove auto-swarm
-   ```
-2. Remove the rules from `~/.claude/CLAUDE.md` — delete everything between `<!-- auto-swarm:start -->` and `<!-- auto-swarm:end -->`.
+### Step 1: Remove the plugin
+
+In terminal:
+```bash
+claude plugin remove auto-swarm@claude-auto-swarm
+```
+
+Or in Claude Code:
+```
+/plugin remove auto-swarm@claude-auto-swarm
+```
+
+### Step 2: Remove the marketplace (optional)
+
+In terminal:
+```bash
+claude plugin marketplace remove claude-auto-swarm
+```
+
+Or in Claude Code:
+```
+/plugin marketplace remove claude-auto-swarm
+```
+
+### Step 3: Remove the rules from CLAUDE.md
+
+Open `~/.claude/CLAUDE.md` and delete everything between `<!-- auto-swarm:start -->` and `<!-- auto-swarm:end -->` (inclusive).
 
 ## FAQ
 
