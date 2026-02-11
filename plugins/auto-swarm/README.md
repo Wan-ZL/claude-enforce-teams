@@ -9,7 +9,7 @@ Claude Code's [Agent Teams](https://code.claude.com/docs/en/agent-teams) (Orches
 ## Features
 
 - **Auto-activation rules** injected into your CLAUDE.md so Claude knows WHEN to create teams
-- **4 aggressiveness levels** — from "teams for everything" to "only when absolutely necessary"
+- **5 aggressiveness levels** — from "teams for literally everything including hello" to "only when absolutely necessary"
 - **`/auto-swarm` command** to switch levels anytime
 - **4 specialized teammate agents** optimized for team scenarios:
   - `swarm-researcher` — parallel research with haiku (fast + cheap)
@@ -45,12 +45,13 @@ This writes the auto-activation rules to your `~/.claude/CLAUDE.md`. The rules t
 
 ## Aggressiveness Levels
 
-| Level | When Teams Are Created | Token Cost |
-|-------|----------------------|------------|
-| **Maximum** | Almost everything: 2+ subtasks, any research/review/debug | ~4x per task |
-| **Balanced** | Moderately complex: 3+ files, multi-angle research, code review | ~3x per task |
-| **Conservative** | Clearly complex: 5+ files, major features, large PRs | ~2x per task |
-| **Minimal** | Only when asked or 10+ files | ~1x (rarely triggers) |
+| Level | When Teams Are Created | Token Cost | Example |
+|-------|----------------------|------------|---------|
+| **Extreme** | EVERYTHING. Even "hello" spawns a team | ~5-10x | "hello" → team with greeter teammate → "Hi! How can I help?" |
+| **Maximum** | Almost everything: 2+ subtasks, any research/review/debug | ~4x | "explain this function" → research team analyzes it |
+| **Balanced** | Moderately complex: 3+ files, multi-angle research, code review | ~3x | "investigate this bug" → debug team with 3 hypotheses |
+| **Conservative** | Clearly complex: 5+ files, major features, large PRs | ~2x | "refactor auth system" → implementation team |
+| **Minimal** | Only when asked or 10+ files | ~1x | Only if you say "use a team" or massive task |
 
 ## How It Works
 
@@ -129,7 +130,7 @@ Claude will ask you to pick a level and update your CLAUDE.md.
 
 ## Customization
 
-The rules live in your `~/.claude/CLAUDE.md` between `<!-- auto-swarm:start -->` and `<!-- auto-swarm:end -->` markers. You can edit them directly if you want to fine-tune the criteria beyond the 4 preset levels.
+The rules live in your `~/.claude/CLAUDE.md` between `<!-- auto-swarm:start -->` and `<!-- auto-swarm:end -->` markers. You can edit them directly if you want to fine-tune the criteria beyond the 5 preset levels.
 
 ## Uninstall
 

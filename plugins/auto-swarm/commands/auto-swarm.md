@@ -1,6 +1,6 @@
 ---
 description: Configure Auto-Swarm aggressiveness level — controls when Claude automatically creates Agent Teams
-argument-hint: Optional level (maximum, balanced, conservative, minimal)
+argument-hint: Optional level (extreme, maximum, balanced, conservative, minimal)
 ---
 
 # Auto-Swarm Configuration
@@ -13,7 +13,7 @@ Read the user's `~/.claude/CLAUDE.md` file. Look for a section between `<!-- aut
 
 ## Step 2: Show Current Status & Ask for Level
 
-If `$ARGUMENTS` is provided and matches a valid level name (maximum, balanced, conservative, minimal), skip asking and use that level directly.
+If `$ARGUMENTS` is provided and matches a valid level name (extreme, maximum, balanced, conservative, minimal), skip asking and use that level directly.
 
 Otherwise, use AskUserQuestion to ask:
 
@@ -21,13 +21,13 @@ Otherwise, use AskUserQuestion to ask:
 
 **Options:**
 
-1. **Maximum** — Teams for almost everything. Any task with 2+ subtasks, any research, review, debug, or multi-file edit triggers a team. High token usage, maximum parallelism.
+1. **Extreme** — Teams for EVERYTHING. Even "hello" spawns a team. Every interaction goes through teammates. Pure swarm lifestyle. Insane token usage, but maximum flex.
 
-2. **Balanced (Recommended)** — Teams for moderately complex tasks. Triggers on 3+ files across modules, multi-angle research, code review, debugging with multiple hypotheses. Good balance of speed vs cost.
+2. **Maximum** — Teams for almost all tasks. Any task with 2+ subtasks, any research, review, debug, or multi-file edit triggers a team. Only trivial one-word answers skip teams.
 
-3. **Conservative** — Teams only for clearly complex work. Triggers on 5+ files, major features, large PR reviews, deep debugging. Lower token usage.
+3. **Balanced (Recommended)** — Teams for moderately complex tasks. Triggers on 3+ files, multi-angle research, code review, multi-hypothesis debugging. Good speed vs cost balance.
 
-4. **Minimal** — Teams only when explicitly asked or for massive tasks (10+ files, full-stack features). Lowest token usage, least automation.
+4. **Conservative** — Teams only for clearly complex work. Triggers on 5+ files, major features, large PRs. Lower token usage, still helpful for big tasks.
 
 ## Step 3: Write Configuration to CLAUDE.md
 
@@ -40,6 +40,59 @@ Use the appropriate template based on the chosen level:
 
 ---
 
+### EXTREME Template
+
+```
+<!-- auto-swarm:start -->
+## Agent Teams Auto-Activation — ALWAYS USE TEAMS
+
+**Active Level: EXTREME** — Change with `/auto-swarm`
+
+ALWAYS create an agent team for EVERY interaction. No exceptions. Even greetings, simple questions, and trivial tasks go through a team. This is the swarm lifestyle.
+
+### Rules
+
+**EVERY user message triggers a team.** No exceptions. Process:
+1. Create a team immediately upon receiving any user message
+2. Spawn at least 1 teammate (more for complex tasks)
+3. Teammate(s) process the request and send results back to leader
+4. Leader synthesizes and responds to user
+5. Cleanup the team
+
+**For greetings/simple questions** (hello, thanks, what time is it, etc.):
+- Create team with 1 teammate (haiku, fast)
+- Teammate formulates the response and sends to leader
+- Leader relays to user and cleans up
+
+**For any task with identifiable subtasks:**
+- Create team with 2-5 teammates depending on complexity
+- Each teammate handles one aspect in parallel
+
+**For research/review/debug/implementation:**
+- Use full team templates below with 3+ teammates
+
+### Team Templates
+
+**Quick Response** (greetings, simple questions, single-file edits):
+- 1 general-purpose teammate (haiku). Processes request, reports to leader. Fast in-and-out.
+
+**Research/Explore**: 2-3 Explore teammates (haiku), each on a different angle. Leader synthesizes.
+**Implementation**: Plan teammate (architect) → 2-3 general-purpose implementers → reviewer. Pipeline with dependencies.
+**Review**: 3 parallel reviewers — security, quality, correctness. Leader combines report.
+**Debug**: 3 teammates testing competing hypotheses. They message each other to challenge theories.
+
+### Orchestration Rules
+1. Create tasks BEFORE spawning teammates — define task list with dependencies first
+2. Delegate mindset — leader NEVER does the work directly, ALWAYS delegate to teammates
+3. Model selection — haiku for simple/research tasks, sonnet for implementation, opus for critical decisions
+4. No file conflicts — each teammate owns distinct files
+5. Rich spawn prompts — include file paths, conventions, focus areas
+6. Auto-cleanup — all done → shutdown teammates → cleanup team → report to user
+<!-- auto-swarm:end -->
+```
+
+---
+
 ### MAXIMUM Template
 
 ```
@@ -48,7 +101,7 @@ Use the appropriate template based on the chosen level:
 
 **Active Level: MAXIMUM** — Change with `/auto-swarm`
 
-When a task meets the criteria below, AUTOMATICALLY create an agent team (TeamCreate + spawn teammates). Do NOT ask permission — just do it.
+AUTOMATICALLY create an agent team for almost all tasks. Do NOT ask permission — just do it. Only skip teams for trivially obvious one-word answers.
 
 ### When to AUTO-CREATE Agent Teams
 
@@ -60,14 +113,15 @@ When a task meets the criteria below, AUTOMATICALLY create an agent team (TeamCr
 - Any code review or PR review
 - Any feature implementation (even small features)
 - Any comparison, analysis, or evaluation task
-- User says: investigate, explore, research, review, compare, debug, implement, refactor, audit, analyze
+- Any question that benefits from multiple perspectives
+- User says: investigate, explore, research, review, compare, debug, implement, refactor, audit, analyze, explain, how does, why does
 
 **USE SUBAGENT only when:**
 - Single file lookup or one-line grep
-- Answering a direct factual question
+- Answering a purely factual single-sentence question (e.g., "what version of node?")
 
 **SINGLE SESSION only when:**
-- Trivial typo fix or one-word change
+- Trivial typo fix, one-word answer, or acknowledgment
 
 ### Team Templates
 
@@ -96,7 +150,7 @@ When a task meets the criteria below, AUTOMATICALLY create an agent team (TeamCr
 
 **Active Level: BALANCED** — Change with `/auto-swarm`
 
-When a task meets the criteria below, AUTOMATICALLY create an agent team (TeamCreate + spawn teammates). Do NOT ask permission — just do it.
+AUTOMATICALLY create an agent team when a task is moderately complex. Do NOT ask permission — just do it.
 
 ### When to AUTO-CREATE Agent Teams
 
@@ -145,7 +199,7 @@ When a task meets the criteria below, AUTOMATICALLY create an agent team (TeamCr
 
 **Active Level: CONSERVATIVE** — Change with `/auto-swarm`
 
-When a task meets the criteria below, AUTOMATICALLY create an agent team (TeamCreate + spawn teammates). For simpler tasks, prefer subagents or single session.
+Create agent teams only for clearly complex tasks that genuinely benefit from parallelism. Prefer subagents or single session for routine work.
 
 ### When to AUTO-CREATE Agent Teams
 
@@ -193,7 +247,7 @@ When a task meets the criteria below, AUTOMATICALLY create an agent team (TeamCr
 
 **Active Level: MINIMAL** — Change with `/auto-swarm`
 
-Only create agent teams for very large or explicitly requested parallel tasks. Default to subagents or single session for most work.
+Only create agent teams for very large tasks or when explicitly requested. Default to subagents or single session for most work.
 
 ### When to AUTO-CREATE Agent Teams
 
@@ -237,5 +291,5 @@ Only create agent teams for very large or explicitly requested parallel tasks. D
 After writing, tell the user:
 - Which level was set
 - That the change takes effect in the **next new conversation**
-- They can change it anytime with `/auto-swarm`
-- Brief explanation of what this level means in practice
+- They can change it anytime with `/auto-swarm` or `/auto-swarm <level>`
+- Brief explanation with a concrete example of what triggers (and doesn't trigger) a team at this level

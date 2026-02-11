@@ -28,7 +28,7 @@ Or in Claude Code, use:
 /auto-swarm
 ```
 
-Choose from 4 levels: **Maximum**, **Balanced**, **Conservative**, or **Minimal**.
+Choose from 5 levels: **Extreme**, **Maximum**, **Balanced**, **Conservative**, or **Minimal**.
 
 ## What This Does
 
