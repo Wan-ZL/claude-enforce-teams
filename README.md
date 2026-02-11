@@ -6,18 +6,24 @@ A Claude Code plugin marketplace for automatic Agent Teams activation.
 
 ### Step 1: Add this marketplace
 
+In terminal:
 ```bash
 claude plugin marketplace add Wan-ZL/claude-auto-swarm
 ```
 
+Or in Claude Code:
+```
+/plugin marketplace add Wan-ZL/claude-auto-swarm
+```
+
 ### Step 2: Install the plugin
 
+In terminal:
 ```bash
 claude plugin install auto-swarm@claude-auto-swarm
 ```
 
-Or in Claude Code, use:
-
+Or in Claude Code:
 ```
 /plugin install auto-swarm@claude-auto-swarm
 ```
