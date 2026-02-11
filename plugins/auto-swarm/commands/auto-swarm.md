@@ -15,19 +15,39 @@ Read the user's `~/.claude/CLAUDE.md` file. Look for a section between `<!-- aut
 
 If `$ARGUMENTS` is provided and matches a valid level name (extreme, maximum, balanced, conservative, minimal), skip asking and use that level directly.
 
-Otherwise, use AskUserQuestion to ask:
+Otherwise, use AskUserQuestion with the following configuration. Mark the current level with "(Current)" in its description. Order is from highest to lowest aggressiveness:
 
-**Question:** "Which aggressiveness level for automatic Agent Teams?"
+```json
+{
+  "questions": [
+    {
+      "question": "Select aggressiveness level for automatic Agent Teams (high → low):",
+      "header": "Swarm Level",
+      "multiSelect": false,
+      "options": [
+        {
+          "label": "Extreme",
+          "description": "Teams for EVERYTHING. Even 'hello' spawns a team. Pure swarm lifestyle."
+        },
+        {
+          "label": "Maximum",
+          "description": "Teams for ALL tasks, no exceptions. Same rules as Extreme, professional tone."
+        },
+        {
+          "label": "Balanced (Recommended)",
+          "description": "Teams for moderately complex tasks: 3+ files, multi-angle research, code review."
+        },
+        {
+          "label": "Conservative",
+          "description": "Teams only for clearly complex work: 5+ files, major features, large PRs."
+        }
+      ]
+    }
+  ]
+}
+```
 
-**Options:**
-
-1. **Extreme** — Teams for EVERYTHING. Even "hello" spawns a team. Every interaction goes through teammates. Pure swarm lifestyle. Insane token usage, but maximum flex.
-
-2. **Maximum** — Teams for ALL tasks, no exceptions. Even one-word inputs and simple questions go through a team. Same as Extreme but without the meme energy in the description.
-
-3. **Balanced (Recommended)** — Teams for moderately complex tasks. Triggers on 3+ files, multi-angle research, code review, multi-hypothesis debugging. Good speed vs cost balance.
-
-4. **Conservative** — Teams only for clearly complex work. Triggers on 5+ files, major features, large PRs. Lower token usage, still helpful for big tasks.
+If the user selects "Other", ask them to type one of: extreme, maximum, balanced, conservative, minimal. The "Minimal" level is available via Other or via `/auto-swarm minimal`.
 
 ## Step 3: Write Configuration to CLAUDE.md
 
