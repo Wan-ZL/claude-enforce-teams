@@ -50,13 +50,21 @@ Or in Claude Code:
 /plugin install enforce-teams@claude-enforce-teams
 ```
 
-### Step 3: Configure delegation level
+### Step 3: Restart Claude Code
+
+Restart Claude Code to load the plugin hooks. You can verify the hook is loaded by running `/hooks` — you should see:
+
+```
+bash ${CLAUDE_PLUGIN_ROOT}/hooks/enforce_teams_check.sh (read-only)  Plugin Hooks
+```
+
+### Step 4: Configure delegation level (optional)
 
 ```
 /enforce-teams
 ```
 
-Choose from 3 levels. The selected level takes effect in every new conversation.
+Choose from 3 levels. The default is **Smart Delegate**. The selected level takes effect in the next new conversation.
 
 ## Delegation Levels
 
